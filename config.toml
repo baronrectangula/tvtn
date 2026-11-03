@@ -1,0 +1,6 @@
+# Local development settings. Credentials are supplied through the environment.
+[postgres]
+host = "127.0.0.1"
+port = 5432
+database = "tvtn"
+ssl_mode = "disable"
