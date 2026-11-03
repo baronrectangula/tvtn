@@ -1,4 +1,9 @@
 #!/bin/sh
+# Keep commit messages consistent in the commit-msg hook and CI.
+# Usage: check-conventional-commit-style.sh MESSAGE_FILE | --commit SHA
+# Enforce the repository's allowed Conventional Commit types and require a
+# descriptive footer for breaking changes. CI skips actual merge commits because
+# Git/GitHub generate their messages. Exit 0 on success, nonzero on invalid input.
 set -eu
 
 if [ "${1:-}" = "--commit" ]; then

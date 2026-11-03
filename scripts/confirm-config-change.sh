@@ -1,4 +1,10 @@
 #!/bin/sh
+# Require an explicit local-development confirmation when config.toml or
+# .env.sample changes, to prompt review before committing deployment credentials.
+# This checks the author's acknowledgement; it does not detect secrets.
+# Usage: confirm-config-change.sh MESSAGE_FILE | --commit SHA
+# The hook checks staged changes; CI checks the given commit, skipping merges.
+# Exit 0 if confirmed/not applicable, 3 for a missing footer, otherwise an error.
 set -eu
 
 # Git passes a message file; CI passes a commit to inspect.
@@ -11,14 +17,12 @@ if [ "${1:-}" = "--commit" ]; then
         *' '*) exit 0 ;;
     esac
     changes=$(git diff-tree --root --no-commit-id --name-only -r --no-renames \
-        --first-parent -m "$commit" -- \
+        "$commit" -- \
         ':(top,literal)config.toml' ':(top,literal).env.sample')
     [ -n "$changes" ] || exit 0
-    message=$(mktemp)
-    trap 'rm -f "$message"' EXIT HUP INT TERM
-    git show -s --format=%B "$commit" > "$message"
+    message=$(git show -s --format=%B "$commit")
 else
-    message=${1:?commit message file required}
+    message=$(cat "${1:?commit message file required}")
     # Inspect Git's active index, including partial commits and deletions.
     if git diff --cached --quiet --no-ext-diff --no-renames -- \
         ':(top,literal)config.toml' ':(top,literal).env.sample'; then
@@ -32,13 +36,13 @@ fi
 required_en='Config-Change: I confirm these settings and credentials are for local development only.'
 required_vi='Config-Change: Tôi xác nhận cấu hình và thông tin đăng nhập này chỉ dùng để phát triển trên máy local.'
 # Accept a Conventional Commits breaking note alongside the confirmation.
-trailers=$(sed 's/^BREAKING CHANGE:/BREAKING-CHANGE:/' "$message" |
+trailers=$(printf '%s\n' "$message" | sed 's/^BREAKING CHANGE:/BREAKING-CHANGE:/' |
     git -c trailer.separators=: interpret-trailers --parse)
 
 # Require both a recognized footer and the exact line, without normalization.
 for required in "$required_en" "$required_vi"; do
     if printf '%s\n' "$trailers" | grep -Fqx -- "$required" &&
-        grep -Fqx -- "$required" "$message"; then
+        printf '%s\n' "$message" | grep -Fqx -- "$required"; then
         exit 0
     fi
 done
