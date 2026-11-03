@@ -144,7 +144,8 @@ PR kiểm tra các commit chưa có trên nhánh đích; push kiểm tra các co
 Lần push đầu của một nhánh chỉ kiểm tra các commit chưa có trên nhánh mặc định.
 
 Khi commit đổi cấu hình mà thiếu footer xác nhận hợp lệ, bot comment trên PR
-(hoặc commit nếu không có PR), nhắc tên chủ repo cá nhân và các admin, kèm link
+(hoặc commit nếu không có PR), nhắc tên tác giả PR, chủ repo cá nhân và các admin
+(mỗi người chỉ một lần), kèm link
 từng commit vi phạm và link check. Lỗi chạy CI không gửi thông báo này. Workflow thông báo
 phải có trên nhánh mặc định; thông báo cá nhân còn tùy cài đặt GitHub của người nhận.
 

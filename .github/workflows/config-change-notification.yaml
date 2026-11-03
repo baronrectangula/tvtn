@@ -58,7 +58,7 @@ jobs:
               `- [${hash.slice(0, 12)}](${repository.html_url}/commit/${hash})`);
             const recipients = new Set();
             if (repository.owner.type === 'User') {
-              recipients.add(repository.owner.login);
+              recipients.add(repository.owner.login.toLowerCase());
             }
 
             let lookupFailed = false;
@@ -67,7 +67,7 @@ jobs:
                 owner, repo, affiliation: 'all', permission: 'admin', per_page: 100,
               });
               for (const admin of admins) {
-                if (admin.type === 'User') recipients.add(admin.login);
+                if (admin.type === 'User') recipients.add(admin.login.toLowerCase());
               }
             } catch (error) {
               lookupFailed = true;
@@ -75,22 +75,26 @@ jobs:
             }
 
             const marker = `<!-- config-confirmation-failure:${run.id}:${run.run_attempt} -->`;
-            const mentions = [...recipients].sort().map(login => `@${login}`).join(' ');
-            const body = [
-              marker,
-              '### Configuration change confirmation failed',
-              mentions || 'Repository administrators: attention required.',
-              '',
-              'These commits change `config.toml` or `.env.sample` without a valid `Config-Change` confirmation footer:',
-              '',
-              ...commitLinks,
-              '',
-              `[Review the failed check](${run.html_url}) and inspect changes to \`config.toml\` and \`.env.sample\`.`,
-              'Confirm that the settings and credentials are for local development, then add the required commit footer if appropriate.',
-              '',
-              'This check failure does not by itself establish that a secret was exposed.',
-              ...(lookupFailed ? ['', 'Administrator lookup failed; not all administrators could be mentioned.'] : []),
-            ].join('\n');
+            const buildBody = (prAuthor) => {
+              const commentRecipients = new Set(recipients);
+              if (prAuthor) commentRecipients.add(prAuthor.toLowerCase());
+              const mentions = [...commentRecipients].sort().map(login => `@${login}`).join(' ');
+              return [
+                marker,
+                '### Configuration change confirmation failed',
+                mentions || 'Repository administrators: attention required.',
+                '',
+                'These commits change `config.toml` or `.env.sample` without a valid `Config-Change` confirmation footer:',
+                '',
+                ...commitLinks,
+                '',
+                `[Review the failed check](${run.html_url}) and inspect changes to \`config.toml\` and \`.env.sample\`.`,
+                'Confirm that the settings and credentials are for local development, then add the required commit footer if appropriate.',
+                '',
+                'This check failure does not by itself establish that a secret was exposed.',
+                ...(lookupFailed ? ['', 'Administrator lookup failed; not all administrators could be mentioned.'] : []),
+              ].join('\n');
+            };
 
             // Find open pull requests from this repository only.
             const associated = await github.paginate(github.rest.repos.listPullRequestsAssociatedWithCommit, {
@@ -106,7 +110,9 @@ jobs:
                 });
                 if (!comments.some(comment => comment.user?.login === 'github-actions[bot]' &&
                     comment.body?.includes(marker))) {
-                  await github.rest.issues.createComment({ owner, repo, issue_number: pr.number, body });
+                  await github.rest.issues.createComment({
+                    owner, repo, issue_number: pr.number, body: buildBody(pr.user?.login),
+                  });
                 }
               }
             } else {
@@ -116,7 +122,7 @@ jobs:
               if (!comments.some(comment => comment.user?.login === 'github-actions[bot]' &&
                   comment.body?.includes(marker))) {
                 await github.rest.repos.createCommitComment({
-                  owner, repo, commit_sha: run.head_sha, body,
+                  owner, repo, commit_sha: run.head_sha, body: buildBody(),
                 });
               }
             }
