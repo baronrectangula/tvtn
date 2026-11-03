@@ -140,7 +140,8 @@ of local settings; it does not detect secrets and can be bypassed with `--no-ver
 
 CI runs lint, tests, and commit footer checks on pushes and same-repository pull requests.
 All jobs, including notifications, skip fork pull requests and forked copies of the repository.
-The first push of a branch checks its entire history.
+PRs check commits not on the target branch; pushes check commits introduced by that push.
+The first push of a branch only checks commits not already on the default branch.
 
 When configuration changes lack a valid confirmation footer, a bot comments on the
 PR (or commit if no PR is open), mentioning the personal repository owner and admins
