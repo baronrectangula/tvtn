@@ -113,6 +113,8 @@ Run `make hooks` once after cloning.
 
 ### Commit messages
 
+CI skips merge commits for message style and configuration confirmation, including edits made only during merge conflict resolution. Ordinary commits still require Conventional Commit messages and configuration footers when applicable.
+
 The hook and CI check Conventional Commit style: `type(scope): description`, with lowercase types
 `feat`, `chore`, `fix`, `test`, `doc`, `refactor`, or `perf`. The scope is optional. Separate the body
 and footers from the subject with a blank line. A `!` requires a footer describing
