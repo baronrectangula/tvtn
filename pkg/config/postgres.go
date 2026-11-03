@@ -48,6 +48,7 @@ func (p *Postgres) DSN() (serect.Value, error) {
 }
 
 // Load reads non-secret settings from the [postgres] section of path.
+// POSTGRES_HOST overrides the configured host when non-empty.
 // Credentials come exclusively from POSTGRES_USER and POSTGRES_PASSWORD.
 // The receiver is unchanged on failure.
 func (p *Postgres) Load(path string) error {
@@ -65,6 +66,9 @@ func (p *Postgres) Load(path string) error {
 	}
 
 	settings := file.Postgres
+	if host := os.Getenv("POSTGRES_HOST"); host != "" {
+		settings.Host = host
+	}
 	if settings.Host == "" {
 		return fmt.Errorf("config.Postgres.Load: postgres.host is required")
 	}

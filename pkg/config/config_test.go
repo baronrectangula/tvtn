@@ -27,6 +27,7 @@ func writeConfig(t *testing.T, content string) string {
 }
 
 func TestLoad(t *testing.T) {
+	t.Setenv("POSTGRES_HOST", "")
 	t.Setenv("POSTGRES_USER", "env-user")
 	t.Setenv("POSTGRES_PASSWORD", "env-password")
 	var cfg Config
@@ -52,6 +53,7 @@ func TestLoad(t *testing.T) {
 }
 
 func TestLoadInvalidConfig(t *testing.T) {
+	t.Setenv("POSTGRES_HOST", "")
 	for _, tc := range []struct{ name, content, user, password string }{
 		{"invalid TOML", "[", "u", "p"},
 		{"missing settings", "", "u", "p"},
@@ -68,5 +70,18 @@ func TestLoadInvalidConfig(t *testing.T) {
 				t.Fatal("expected load error")
 			}
 		})
+	}
+}
+
+func TestLoadHostOverride(t *testing.T) {
+	t.Setenv("POSTGRES_HOST", "postgres")
+	t.Setenv("POSTGRES_USER", "env-user")
+	t.Setenv("POSTGRES_PASSWORD", "env-password")
+	var cfg Config
+	if err := cfg.Load(writeConfig(t, localTOML)); err != nil {
+		t.Fatal(err)
+	}
+	if cfg.Postgres.Host != "postgres" {
+		t.Fatalf("expected environment host, got %q", cfg.Postgres.Host)
 	}
 }

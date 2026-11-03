@@ -1,0 +1,43 @@
+# Version control and local tools
+.git
+**/.git
+.agents
+.codex
+.idea
+.vscode
+**/.DS_Store
+
+# Local credentials and private files (including sample env files)
+.env
+.env.*
+**/.env
+**/.env.*
+.aws
+.ssh
+secrets
+**/*.key
+**/*.pem
+**/*.p12
+**/*.pfx
+
+# Local workspaces, dependencies, build/test output, and database dumps
+go.work
+go.work.sum
+node_modules
+bin
+build
+dist
+tmp
+coverage
+**/*.test
+**/*.out
+**/*.prof
+**/*.exe
+**/*.exe~
+**/*.dll
+**/*.so
+**/*.dylib
+**/*.log
+**/*.dump
+**/*.sql.gz
+postgres_data
