@@ -1,5 +1,7 @@
 # TVTN: Tìm việc, tìm người
 
+Tiếng Việt | [English](README.en.md)
+
 ## Mục lục
 
 - [Setup và chạy](#setup-và-chạy)
