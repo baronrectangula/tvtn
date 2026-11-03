@@ -1,4 +1,4 @@
-name: Configuration change confirmation
+name: Validate config change confirmation
 
 on: [push, pull_request]
 
@@ -6,7 +6,8 @@ permissions:
   contents: read
 
 jobs:
-  confirm:
+  validate-config-change-confirmation:
+    name: Validate config change confirmation
     if: >-
       github.event.repository.fork == false &&
       (github.event_name != 'pull_request' ||
@@ -17,7 +18,7 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
-      - name: Check commit footers
+      - name: Validate config change confirmation
         env:
           BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
           HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
