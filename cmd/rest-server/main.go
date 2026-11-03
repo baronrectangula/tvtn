@@ -56,7 +56,7 @@ func run(ctx context.Context, options serverOptions) error {
 	if err != nil {
 		return fmt.Errorf("rest-server.run: %w", err)
 	}
-	defer listener.Close()
+	defer func() { _ = listener.Close() }()
 
 	slog.Info("REST server listening", "address", listener.Addr().String())
 
@@ -85,7 +85,9 @@ func serve(ctx context.Context, server *http.Server, listener net.Listener) erro
 
 	if err := server.Shutdown(shutdownCtx); err != nil {
 		_ = server.Close()
-		<-serveErrors
+		if serveErr := <-serveErrors; serveErr != nil && !errors.Is(serveErr, http.ErrServerClosed) {
+			slog.Error("HTTP server failed during shutdown", "error", serveErr)
+		}
 		return fmt.Errorf("rest-server.serve: %w", err)
 	}
 

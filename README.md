@@ -9,6 +9,9 @@ Tiếng Việt | [English](README.en.md)
   - [Chạy trực tiếp](#chạy-trực-tiếp)
 - [Cấu hình](#cấu-hình)
 - [Kiểm tra](#kiểm-tra)
+- [Git hooks](#git-hooks)
+  - [Commit message](#commit-message)
+  - [Xác nhận thay đổi cấu hình](#xác-nhận-thay-đổi-cấu-hình)
 - [Giấy phép](#giấy-phép)
 
 ## Setup và chạy
@@ -101,6 +104,48 @@ go test ./...
 # Hoặc:
 make test
 ```
+
+## Git hooks
+
+Chạy `make hooks` một lần sau khi clone repo.
+
+### Commit message
+
+Hook và CI kiểm tra Conventional Commit theo dạng `type(scope): mô tả`, với `type` là `feat`, `chore`,
+`fix`, `test`, `doc`, `refactor` hoặc `perf` (chữ thường). `scope` không bắt buộc. Body và footer
+cách tiêu đề một dòng trống. Commit có dấu `!` phải có footer giải thích thay đổi
+không tương thích; cũng có thể dùng footer này mà không thêm `!`:
+
+```text
+feat(api)!: đổi định dạng phản hồi
+
+BREAKING CHANGE: Trường user_id được đổi thành id.
+```
+
+Có thể dùng `BREAKING-CHANGE` thay cho `BREAKING CHANGE`.
+
+### Xác nhận thay đổi cấu hình
+
+Khi commit thay đổi đã stage trong
+`config.toml` hoặc `.env.sample`, kiểm tra lại nội dung rồi thêm một trong hai footer
+sau một dòng trống:
+
+```text
+Config-Change: Tôi xác nhận cấu hình và thông tin đăng nhập này chỉ dùng để phát triển trên máy local.
+```
+
+Footer phải khớp chính xác, có phân biệt chữ hoa và chữ thường. Hook này nhắc người
+commit kiểm tra thông tin local; không tự phát hiện secret và có thể bị bỏ qua bằng
+`--no-verify`.
+
+CI chạy lint, test và kiểm tra footer khi push hoặc mở PR từ nhánh trong cùng repo.
+Các job, kể cả thông báo, đều bỏ qua PR từ fork và bản repo được fork.
+Lần push đầu của một nhánh sẽ kiểm tra toàn bộ lịch sử nhánh đó.
+
+Khi commit đổi cấu hình mà thiếu footer xác nhận hợp lệ, bot comment trên PR
+(hoặc commit nếu không có PR), nhắc tên chủ repo cá nhân và các admin, kèm link
+từng commit vi phạm và link check. Lỗi chạy CI không gửi thông báo này. Workflow thông báo
+phải có trên nhánh mặc định; thông báo cá nhân còn tùy cài đặt GitHub của người nhận.
 
 ## Giấy phép
 

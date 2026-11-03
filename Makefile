@@ -9,7 +9,10 @@ compose: export TVTN_REST_ARGS = $(args)
 
 .DEFAULT_GOAL := test
 
-.PHONY: test run compose decompose
+.PHONY: test run compose decompose hooks
+
+hooks:
+	git config --local core.hooksPath .githooks
 
 test:
 	go test ./...

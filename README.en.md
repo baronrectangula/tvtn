@@ -9,6 +9,9 @@
   - [Manually](#manually)
 - [Configuration](#configuration)
 - [Verification and tests](#verification-and-tests)
+- [Git hooks](#git-hooks)
+  - [Commit messages](#commit-messages)
+  - [Configuration change confirmation](#configuration-change-confirmation)
 - [License](#license)
 
 ## Setup and running
@@ -103,6 +106,46 @@ go test ./...
 # Or:
 make test
 ```
+
+## Git hooks
+
+Run `make hooks` once after cloning.
+
+### Commit messages
+
+The hook and CI check Conventional Commit style: `type(scope): description`, with lowercase types
+`feat`, `chore`, `fix`, `test`, `doc`, `refactor`, or `perf`. The scope is optional. Separate the body
+and footers from the subject with a blank line. A `!` requires a footer describing
+the incompatible change; the footer can also mark a breaking change without `!`:
+
+```text
+feat(api)!: change the response format
+
+BREAKING CHANGE: The user_id field is now named id.
+```
+
+`BREAKING-CHANGE` is also accepted in place of `BREAKING CHANGE`.
+
+### Configuration change confirmation
+
+When committing staged changes to `config.toml`
+or `.env.sample`, review them and add either footer after a blank line:
+
+```text
+Config-Change: I confirm these settings and credentials are for local development only.
+```
+
+The footer must match exactly, including capitalization. This hook prompts a review
+of local settings; it does not detect secrets and can be bypassed with `--no-verify`.
+
+CI runs lint, tests, and commit footer checks on pushes and same-repository pull requests.
+All jobs, including notifications, skip fork pull requests and forked copies of the repository.
+The first push of a branch checks its entire history.
+
+When configuration changes lack a valid confirmation footer, a bot comments on the
+PR (or commit if no PR is open), mentioning the personal repository owner and admins
+with links to each offending commit and the check. CI execution errors do not send this notification. The notification workflow must be on the default branch; delivery
+to each recipient depends on their GitHub notification settings.
 
 ## License
 

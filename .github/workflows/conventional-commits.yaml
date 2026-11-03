@@ -1,0 +1,38 @@
+name: Check Conventional Commit style
+
+on: [push, pull_request]
+
+permissions:
+  contents: read
+
+jobs:
+  conventional-commits:
+    name: Check Conventional Commit style
+    if: >-
+      github.event.repository.fork == false &&
+      (github.event_name != 'pull_request' ||
+       github.event.pull_request.head.repo.id == github.event.repository.id)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Validate commit message format
+        env:
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+          HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          if [[ -z "$BASE" || "$BASE" =~ ^0+$ ]]; then
+            commits=$(git rev-list --reverse "$HEAD")
+          else
+            commits=$(git rev-list --reverse "$BASE..$HEAD")
+          fi
+          failed=0
+          for commit in $commits; do
+            if ! scripts/check-conventional-commit-style.sh --commit "$commit"; then
+              echo "::error::Invalid Conventional Commit message in commit $commit"
+              failed=1
+            fi
+          done
+          exit "$failed"

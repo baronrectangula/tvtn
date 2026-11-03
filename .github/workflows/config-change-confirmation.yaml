@@ -1,0 +1,50 @@
+name: Configuration change confirmation
+
+on: [push, pull_request]
+
+permissions:
+  contents: read
+
+jobs:
+  confirm:
+    if: >-
+      github.event.repository.fork == false &&
+      (github.event_name != 'pull_request' ||
+       github.event.pull_request.head.repo.id == github.event.repository.id)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Check commit footers
+        env:
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+          HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          if [[ -z "$BASE" || "$BASE" =~ ^0+$ ]]; then
+            commits=$(git rev-list --reverse "$HEAD")
+          else
+            commits=$(git rev-list --reverse "$BASE..$HEAD")
+          fi
+          missing=()
+          check_error=0
+          for commit in $commits; do
+            if scripts/confirm-config-change.sh --commit "$commit"; then
+              continue
+            else
+              status=$?
+              if [[ "$status" -eq 3 ]]; then
+                missing+=("$commit")
+              else
+                echo "::error::Could not inspect commit $commit (exit $status)"
+                check_error=1
+              fi
+            fi
+          done
+          if [[ "${#missing[@]}" -gt 0 ]]; then
+            # One annotation preserves the full list beyond GitHub's per-step annotation count limit.
+            echo "::error title=Missing configuration confirmation::${missing[*]}"
+            exit 1
+          fi
+          exit "$check_error"

@@ -1,6 +1,9 @@
 # Version control and local tools
 .git
 **/.git
+.github
+.githooks
+scripts
 .agents
 .codex
 .idea

@@ -24,7 +24,7 @@ func TestServeGracefulShutdown(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer listener.Close()
+	defer func() { _ = listener.Close() }()
 
 	started := make(chan struct{})
 	shutdownStarted := make(chan struct{})
@@ -37,7 +37,7 @@ func TestServeGracefulShutdown(t *testing.T) {
 		_, _ = io.WriteString(w, "finished")
 	})}
 	server.RegisterOnShutdown(func() { close(shutdownStarted) })
-	defer server.Close()
+	defer func() { _ = server.Close() }()
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -52,7 +52,7 @@ func TestServeGracefulShutdown(t *testing.T) {
 			requestDone <- err
 			return
 		}
-		defer response.Body.Close()
+		defer func() { _ = response.Body.Close() }()
 		body, err := io.ReadAll(response.Body)
 		if err == nil && (response.StatusCode != 200 || string(body) != "finished") {
 			err = errors.New("active request did not complete")
@@ -85,7 +85,9 @@ func TestServeListenerFailure(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	listener.Close()
+	if err := listener.Close(); err != nil {
+		t.Fatal(err)
+	}
 
 	if err := serve(context.Background(), &http.Server{}, listener); !errors.Is(err, net.ErrClosed) {
 		t.Fatalf("expected listener error, got %v", err)

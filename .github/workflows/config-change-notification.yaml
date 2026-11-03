@@ -1,0 +1,125 @@
+name: Configuration change failure notification
+
+on:
+  workflow_run:
+    workflows: [Configuration change confirmation]
+    types: [completed]
+
+permissions:
+  actions: read
+  checks: read
+  contents: write # Commit comments when there is no associated pull request.
+  pull-requests: write
+
+concurrency:
+  group: config-notification-${{ github.event.workflow_run.id }}-${{ github.event.workflow_run.run_attempt }}
+  cancel-in-progress: false
+
+jobs:
+  notify:
+    if: >-
+      github.event.repository.fork == false &&
+      github.event.workflow_run.conclusion == 'failure' &&
+      github.event.workflow_run.head_repository.id == github.event.repository.id
+    runs-on: ubuntu-latest
+    steps:
+      # No checkout or execution of code/artifacts from the triggering branch.
+      - uses: actions/github-script@v9
+        with:
+          script: |
+            const run = context.payload.workflow_run;
+            const { owner, repo } = context.repo;
+            const repository = context.payload.repository;
+            // Only notify for confirmed missing footers, not checkout or execution failures.
+            const jobs = await github.paginate(github.rest.actions.listJobsForWorkflowRunAttempt, {
+              owner, repo, run_id: run.id, attempt_number: run.run_attempt, per_page: 100,
+            });
+            const offendingCommits = new Set();
+            for (const job of jobs) {
+              if (job.name !== 'confirm' || job.conclusion !== 'failure') continue;
+              const checkRunId = job.check_run_url?.match(/\/check-runs\/(\d+)$/)?.[1];
+              if (!checkRunId) continue;
+              const annotations = await github.paginate(github.rest.checks.listAnnotations, {
+                owner, repo, check_run_id: Number(checkRunId), per_page: 100,
+              });
+              for (const annotation of annotations) {
+                if (annotation.title !== 'Missing configuration confirmation' ||
+                    annotation.annotation_level !== 'failure') continue;
+                const hashes = annotation.message.trim().split(/\s+/);
+                if (!hashes.every(hash => /^[a-f0-9]{40}$/.test(hash))) continue;
+                for (const hash of hashes) offendingCommits.add(hash);
+              }
+            }
+            if (offendingCommits.size === 0) {
+              core.info('No configuration changes missing confirmation; no notification needed.');
+              return;
+            }
+            const commitLinks = [...offendingCommits].map(hash =>
+              `- [${hash.slice(0, 12)}](${repository.html_url}/commit/${hash})`);
+            const recipients = new Set();
+            if (repository.owner.type === 'User') {
+              recipients.add(repository.owner.login);
+            }
+
+            let lookupFailed = false;
+            try {
+              const admins = await github.paginate(github.rest.repos.listCollaborators, {
+                owner, repo, affiliation: 'all', permission: 'admin', per_page: 100,
+              });
+              for (const admin of admins) {
+                if (admin.type === 'User') recipients.add(admin.login);
+              }
+            } catch (error) {
+              lookupFailed = true;
+              core.warning(`Could not list repository administrators: ${error.message}`);
+            }
+
+            const marker = `<!-- config-confirmation-failure:${run.id}:${run.run_attempt} -->`;
+            const mentions = [...recipients].sort().map(login => `@${login}`).join(' ');
+            const body = [
+              marker,
+              '### Configuration change confirmation failed',
+              mentions || 'Repository administrators: attention required.',
+              '',
+              'These commits change `config.toml` or `.env.sample` without a valid `Config-Change` confirmation footer:',
+              '',
+              ...commitLinks,
+              '',
+              `[Review the failed check](${run.html_url}) and inspect changes to \`config.toml\` and \`.env.sample\`.`,
+              'Confirm that the settings and credentials are for local development, then add the required commit footer if appropriate.',
+              '',
+              'This check failure does not by itself establish that a secret was exposed.',
+              ...(lookupFailed ? ['', 'Administrator lookup failed; not all administrators could be mentioned.'] : []),
+            ].join('\n');
+
+            // Find open pull requests from this repository only.
+            const associated = await github.paginate(github.rest.repos.listPullRequestsAssociatedWithCommit, {
+              owner, repo, commit_sha: run.head_sha, per_page: 100,
+            });
+            const pullRequests = associated.filter(pr =>
+              pr.state === 'open' && pr.base.repo.id === repository.id &&
+              pr.head.repo?.id === repository.id);
+            if (pullRequests.length > 0) {
+              for (const pr of pullRequests) {
+                const comments = await github.paginate(github.rest.issues.listComments, {
+                  owner, repo, issue_number: pr.number, per_page: 100,
+                });
+                if (!comments.some(comment => comment.user?.login === 'github-actions[bot]' &&
+                    comment.body?.includes(marker))) {
+                  await github.rest.issues.createComment({ owner, repo, issue_number: pr.number, body });
+                }
+              }
+            } else {
+              const comments = await github.paginate(github.rest.repos.listCommentsForCommit, {
+                owner, repo, commit_sha: run.head_sha, per_page: 100,
+              });
+              if (!comments.some(comment => comment.user?.login === 'github-actions[bot]' &&
+                  comment.body?.includes(marker))) {
+                await github.rest.repos.createCommitComment({
+                  owner, repo, commit_sha: run.head_sha, body,
+                });
+              }
+            }
+            if (lookupFailed || recipients.size === 0) {
+              core.setFailed('The failure comment was posted, but repository owner/admin notification could not be completed.');
+            }
