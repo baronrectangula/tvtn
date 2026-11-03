@@ -4,6 +4,12 @@ set -eu
 # Git passes a message file; CI passes a commit to inspect.
 if [ "${1:-}" = "--commit" ]; then
     commit=$(git rev-parse --verify "${2:?commit required}^{commit}")
+    # Generated merge messages do not carry the original commits' footers.
+    # Those commits remain in the CI range and are validated individually.
+    parents=$(git show -s --format=%P "$commit")
+    case "$parents" in
+        *' '*) exit 0 ;;
+    esac
     changes=$(git diff-tree --root --no-commit-id --name-only -r --no-renames \
         --first-parent -m "$commit" -- \
         ':(top,literal)config.toml' ':(top,literal).env.sample')
