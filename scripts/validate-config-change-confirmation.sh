@@ -2,7 +2,7 @@
 # Require an explicit local-development confirmation when config.toml or
 # .env.sample changes, to prompt review before committing deployment credentials.
 # This checks the author's acknowledgement; it does not detect secrets.
-# Usage: confirm-config-change.sh MESSAGE_FILE | --commit SHA
+# Usage: validate-config-change-confirmation.sh MESSAGE_FILE | --commit SHA
 # The hook checks staged changes; CI checks the given commit, skipping merges.
 # Exit 0 if confirmed/not applicable, 3 for a missing footer, otherwise an error.
 set -eu

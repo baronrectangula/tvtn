@@ -28,7 +28,7 @@ jobs:
           commits=$(sh scripts/list-commits-for-validation.sh)
           failed=0
           for commit in $commits; do
-            if ! scripts/check-conventional-commit-style.sh --commit "$commit"; then
+            if ! scripts/validate-conventional-commit-style.sh --commit "$commit"; then
               echo "::error::Invalid Conventional Commit message in commit $commit"
               failed=1
             fi

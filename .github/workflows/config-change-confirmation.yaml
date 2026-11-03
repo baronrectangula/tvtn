@@ -28,7 +28,7 @@ jobs:
           missing=()
           check_error=0
           for commit in $commits; do
-            if scripts/confirm-config-change.sh --commit "$commit"; then
+            if scripts/validate-config-change-confirmation.sh --commit "$commit"; then
               continue
             else
               status=$?
