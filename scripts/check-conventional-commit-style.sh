@@ -3,6 +3,12 @@ set -eu
 
 if [ "${1:-}" = "--commit" ]; then
     commit=$(git rev-parse --verify "${2:?commit required}^{commit}")
+    # Git/GitHub generate merge subjects. Identify merges by their parents so
+    # ordinary commits cannot bypass validation with a merge-like subject.
+    parents=$(git show -s --format=%P "$commit")
+    case "$parents" in
+        *' '*) exit 0 ;;
+    esac
     message=$(git show -s --format=%B "$commit")
 else
     # Ignore Git's editor comments, just as the default commit cleanup does.

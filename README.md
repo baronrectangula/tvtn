@@ -111,6 +111,8 @@ Chạy `make hooks` một lần sau khi clone repo.
 
 ### Commit message
 
+CI bỏ qua merge commit khi kiểm tra định dạng commit message; các commit thông thường vẫn phải tuân theo Conventional Commits.
+
 Hook và CI kiểm tra Conventional Commit theo dạng `type(scope): mô tả`, với `type` là `feat`, `chore`,
 `fix`, `test`, `doc`, `refactor` hoặc `perf` (chữ thường). `scope` không bắt buộc. Body và footer
 cách tiêu đề một dòng trống. Commit có dấu `!` phải có footer giải thích thay đổi
