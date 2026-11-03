@@ -145,7 +145,8 @@ Footer phải khớp chính xác, có phân biệt chữ hoa và chữ thường
 commit kiểm tra thông tin local; không tự phát hiện secret và có thể bị bỏ qua bằng
 `--no-verify`.
 
-CI chạy lint, test và kiểm tra footer khi push hoặc mở PR từ nhánh trong cùng repo.
+CI chạy lint, test và kiểm tra footer khi push lên `main` hoặc có PR từ nhánh trong cùng repo.
+Commit mới trên PR tự chạy lại các check; push nhánh tính năng không chạy thêm một lượt riêng.
 Các job, kể cả thông báo, đều bỏ qua PR từ fork và bản repo được fork.
 PR kiểm tra các commit chưa có trên nhánh đích; push kiểm tra các commit mới trong lần push đó.
 Lần push đầu của một nhánh hoặc sau khi viết lại lịch sử chỉ kiểm tra các commit chưa có trên nhánh mặc định.
