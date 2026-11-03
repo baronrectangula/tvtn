@@ -1,5 +1,10 @@
 # TVTN: Tìm việc, tìm người
 
+![Status: in development](https://img.shields.io/badge/status-in%20development-yellow)
+[![Test](https://github.com/baronrectangula/tvtn/actions/workflows/test.yaml/badge.svg?branch=main)](https://github.com/baronrectangula/tvtn/actions/workflows/test.yaml)
+[![Lint](https://github.com/baronrectangula/tvtn/actions/workflows/lint.yaml/badge.svg?branch=main)](https://github.com/baronrectangula/tvtn/actions/workflows/lint.yaml)
+[![License: AGPL-3.0-only](https://img.shields.io/badge/license-AGPL--3.0--only-blue)](LICENSE)
+
 Tiếng Việt | [English](README.en.md)
 
 ## Mục lục
