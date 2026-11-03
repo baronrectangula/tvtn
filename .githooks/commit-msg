@@ -1,5 +1,8 @@
 #!/bin/sh
+# Before a local commit is created, validate its message and require confirmation
+# for staged configuration changes. Git supplies the commit message file as $1.
+# Install this hook with make hooks; either validator can reject the commit.
 set -eu
 root=$(git rev-parse --show-toplevel)
-"$root/scripts/check-conventional-commit-style.sh" "$@"
-exec "$root/scripts/confirm-config-change.sh" "$@"
+"$root/scripts/validate-conventional-commit-style.sh" "$@"
+exec "$root/scripts/validate-config-change-confirmation.sh" "$@"

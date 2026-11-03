@@ -145,7 +145,8 @@ Config-Change: I confirm these settings and credentials are for local developmen
 The footer must match exactly, including capitalization. This hook prompts a review
 of local settings; it does not detect secrets and can be bypassed with `--no-verify`.
 
-CI runs lint, tests, and commit footer checks on pushes and same-repository pull requests.
+CI runs lint, tests, and commit footer checks on pushes to `main` and same-repository pull requests.
+New commits on an open PR automatically rerun checks; feature-branch pushes do not run a second set.
 All jobs, including notifications, skip fork pull requests and forked copies of the repository.
 PRs check commits not on the target branch; pushes check commits introduced by that push.
 The first push of a branch, or a push after rewriting its history, only checks commits not already on the default branch.

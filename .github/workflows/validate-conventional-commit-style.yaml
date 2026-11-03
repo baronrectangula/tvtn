@@ -1,13 +1,16 @@
-name: Check Conventional Commit style
+name: Validate conventional commit style
 
-on: [push, pull_request]
+on:
+  push:
+    branches: [main]
+  pull_request:
 
 permissions:
   contents: read
 
 jobs:
-  conventional-commits:
-    name: Check Conventional Commit style
+  validate-conventional-commit-style:
+    name: Validate conventional commit style
     if: >-
       github.event.repository.fork == false &&
       (github.event_name != 'pull_request' ||
@@ -18,17 +21,17 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
-      - name: Validate commit message format
+      - name: Validate conventional commit style
         env:
           BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
           HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
           DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
           EVENT_NAME: ${{ github.event_name }}
         run: |
-          commits=$(sh scripts/ci-commits.sh)
+          commits=$(sh scripts/list-commits-for-validation.sh)
           failed=0
           for commit in $commits; do
-            if ! scripts/check-conventional-commit-style.sh --commit "$commit"; then
+            if ! scripts/validate-conventional-commit-style.sh --commit "$commit"; then
               echo "::error::Invalid Conventional Commit message in commit $commit"
               failed=1
             fi

@@ -1,8 +1,8 @@
-name: Configuration change failure notification
+name: Notify config change confirmation failure
 
 on:
   workflow_run:
-    workflows: [Configuration change confirmation]
+    workflows: [Validate config change confirmation]
     types: [completed]
 
 permissions:
@@ -16,7 +16,8 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  notify:
+  notify-config-change-confirmation-failure:
+    name: Notify config change confirmation failure
     if: >-
       github.event.repository.fork == false &&
       github.event.workflow_run.conclusion == 'failure' &&
@@ -36,7 +37,7 @@ jobs:
             });
             const offendingCommits = new Set();
             for (const job of jobs) {
-              if (job.name !== 'confirm' || job.conclusion !== 'failure') continue;
+              if (job.name !== 'Validate config change confirmation' || job.conclusion !== 'failure') continue;
               const checkRunId = job.check_run_url?.match(/\/check-runs\/(\d+)$/)?.[1];
               if (!checkRunId) continue;
               const annotations = await github.paginate(github.rest.checks.listAnnotations, {
