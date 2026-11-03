@@ -7,6 +7,7 @@
   - [Chạy trực tiếp](#chạy-trực-tiếp)
 - [Cấu hình](#cấu-hình)
 - [Kiểm tra](#kiểm-tra)
+- [Giấy phép](#giấy-phép)
 
 ## Setup và chạy
 
@@ -98,3 +99,7 @@ go test ./...
 # Hoặc:
 make test
 ```
+
+## Giấy phép
+
+TVTN được phát hành theo [AGPL-3.0-only](LICENSE). Các dependency trong `vendor/` giữ giấy phép riêng.
