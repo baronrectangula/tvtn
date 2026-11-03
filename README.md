@@ -148,7 +148,7 @@ commit kiểm tra thông tin local; không tự phát hiện secret và có th�
 CI chạy lint, test và kiểm tra footer khi push hoặc mở PR từ nhánh trong cùng repo.
 Các job, kể cả thông báo, đều bỏ qua PR từ fork và bản repo được fork.
 PR kiểm tra các commit chưa có trên nhánh đích; push kiểm tra các commit mới trong lần push đó.
-Lần push đầu của một nhánh chỉ kiểm tra các commit chưa có trên nhánh mặc định.
+Lần push đầu của một nhánh hoặc sau khi viết lại lịch sử chỉ kiểm tra các commit chưa có trên nhánh mặc định.
 
 Khi commit đổi cấu hình mà thiếu footer xác nhận hợp lệ, bot comment trên PR
 (hoặc commit nếu không có PR), nhắc tên tác giả PR, chủ repo cá nhân và các admin
