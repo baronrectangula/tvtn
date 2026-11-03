@@ -1,5 +1,10 @@
 # TVTN: Tìm việc, tìm người
 
+![Status: in development](https://img.shields.io/badge/status-in%20development-yellow)
+[![Test](https://github.com/baronrectangula/tvtn/actions/workflows/test.yaml/badge.svg?branch=main)](https://github.com/baronrectangula/tvtn/actions/workflows/test.yaml)
+[![Lint](https://github.com/baronrectangula/tvtn/actions/workflows/lint.yaml/badge.svg?branch=main)](https://github.com/baronrectangula/tvtn/actions/workflows/lint.yaml)
+[![License: AGPL-3.0-only](https://img.shields.io/badge/license-AGPL--3.0--only-blue)](LICENSE)
+
 [Tiếng Việt](README.md) | English
 
 ## Contents
@@ -143,7 +148,7 @@ of local settings; it does not detect secrets and can be bypassed with `--no-ver
 CI runs lint, tests, and commit footer checks on pushes and same-repository pull requests.
 All jobs, including notifications, skip fork pull requests and forked copies of the repository.
 PRs check commits not on the target branch; pushes check commits introduced by that push.
-The first push of a branch only checks commits not already on the default branch.
+The first push of a branch, or a push after rewriting its history, only checks commits not already on the default branch.
 
 When configuration changes lack a valid confirmation footer, a bot comments on the
 PR (or commit if no PR is open), mentioning the PR author, personal repository owner,
